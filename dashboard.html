@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-50 text-slate-900">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Operations Dashboard</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Custom Stylings (Animations, Google Fonts) -->
+  <link rel="stylesheet" href="css/style.css" />
+  <!-- PWA Manifest & Theme Color -->
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#2563eb" />
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Space Grotesk', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="flex flex-col min-h-screen animate-fade-in bg-slate-50">
+
+  <!-- Admin Header Nav -->
+  <header class="sticky top-0 z-40 bg-slate-900 text-white border-b border-slate-800 shadow-md">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <a href="index.html" class="flex items-center space-x-2">
+          <div class="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
+            <svg class="w-4.5 h-4.5 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17L17.25 21A1.75 1.75 0 1020 18.25l-5.83-5.83M11.42 15.17L3 6.75M11.42 15.17L3.75 11.42a1.75 1.75 0 010-3.34L17.38 3.51a1.75 1.75 0 012.11 2.11L15.67 19.38a1.75 1.75 0 01-3.34 0L11.42 15.17z" />
+            </svg>
+          </div>
+          <span class="font-display font-bold text-base tracking-tight block">Dispatch Console</span>
+        </a>
+        <span class="px-2 py-0.5 bg-blue-500/20 text-blue-405 border border-blue-500/30 font-semibold text-[10px] rounded uppercase font-mono tracking-wider">Admin Room</span>
+      </div>
+
+      <!-- Quick Reset Local Storage & Connection settings button -->
+      <div class="flex items-center space-x-3">
+        <button id="open-config-btn" class="p-2 hover:bg-slate-800 text-slate-350 hover:text-white rounded-lg transition" title="Dashboard Configuration Credentials">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+        </button>
+        <button id="refresh-jobs-btn" class="p-2 hover:bg-slate-800 text-slate-350 hover:text-white rounded-lg transition" title="Sync Spreadsheet Data">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 3v5H16.21" />
+          </svg>
+        </button>
+        <a href="index.html" class="text-xs text-slate-400 hover:text-white transition">Exit</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Connection Credentials Overlay Panel (Hidden by default) -->
+  <div id="config-overlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white border border-slate-200 shadow-2xl rounded-2xl p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <h3 class="font-display font-bold text-lg text-slate-900">Platform Integration Settings</h3>
+        <button id="close-config-btn" class="p-1 hover:bg-slate-100 rounded text-slate-400 hover:text-slate-700">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <p class="text-xs text-slate-500">Configure your API credentials here. This saves to your local browser storage. If left blank, the platform automatically runs on local mock storage for flawless developer testing!</p>
+      
+      <div class="space-y-3.5 text-sm">
+        <!-- Sheet API -->
+        <div class="space-y-1">
+          <label class="block text-xs font-semibold text-slate-600">Google Apps Script Web App URL</label>
+          <input type="text" id="cfg-sheets-url" placeholder="https://script.google.com/macros/s/.../exec" class="w-full h-10 px-3 border border-slate-200 rounded-lg text-xs outline-none focus:border-blue-500" />
+        </div>
+        <!-- EmailJS Service ID -->
+        <div class="space-y-1">
+          <label class="block text-xs font-semibold text-slate-600">EmailJS Service ID</label>
+          <input type="text" id="cfg-email-service" placeholder="service_xxxxx" class="w-full h-10 px-3 border border-slate-200 rounded-lg text-xs outline-none focus:border-blue-500" />
+        </div>
+        <!-- EmailJS Admin Template -->
+        <div class="space-y-1">
+          <label class="block text-xs font-semibold text-slate-600">EmailJS Admin Notification Template ID</label>
+          <input type="text" id="cfg-email-tmp-admin" placeholder="template_xxxxx" class="w-full h-10 px-3 border border-slate-200 rounded-lg text-xs outline-none focus:border-blue-500" />
+        </div>
+        <!-- EmailJS Auto Confirm Template -->
+        <div class="space-y-1">
+          <label class="block text-xs font-semibold text-slate-600">EmailJS Auto Confirm Template ID</label>
+          <input type="text" id="cfg-email-tmp-client" placeholder="template_xxxxx" class="w-full h-10 px-3 border border-slate-200 rounded-lg text-xs outline-none focus:border-blue-500" />
+        </div>
+        <!-- EmailJS Decision Response Template -->
+        <div class="space-y-1">
+          <label class="block text-xs font-semibold text-slate-600">EmailJS Accept/Decline Template ID</label>
+          <input type="text" id="cfg-email-tmp-decide" placeholder="template_yyyyy" class="w-full h-10 px-3 border border-slate-200 rounded-lg text-xs outline-none focus:border-blue-500" />
+        </div>
+        <!-- EmailJS Public Key -->
+        <div class="space-y-1">
+          <label class="block text-xs font-semibold text-slate-600">EmailJS Public Key</label>
+          <input type="text" id="cfg-email-key" placeholder="user_xxxxxxxx" class="w-full h-10 px-3 border border-slate-200 rounded-lg text-xs outline-none focus:border-blue-500" />
+        </div>
+        <!-- OneSignal -->
+        <div class="space-y-1">
+          <label class="block text-xs font-semibold text-slate-600">OneSignal App ID</label>
+          <input type="text" id="cfg-onesignal-id" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" class="w-full h-10 px-3 border border-slate-200 rounded-lg text-xs outline-none focus:border-blue-500" />
+        </div>
+      </div>
+
+      <div class="pt-3 border-t border-slate-100 flex justify-end space-x-2 text-xs">
+        <button id="reset-mock-btn" class="px-4 py-2 hover:bg-slate-100 text-slate-500 rounded font-medium">Revert to Demo Mode</button>
+        <button id="save-config-btn" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded font-semibold shadow-sm">Save Config</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Dashboard Layout -->
+  <main class="flex-grow max-w-6xl w-full mx-auto px-4 py-6 space-y-6">
+    
+    <!-- Stats Banner Counter cards -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <!-- Total Tickets Card -->
+      <div class="bg-white border border-slate-200 p-4 rounded-xl flex items-center justify-between shadow-sm">
+        <div class="space-y-1">
+          <span class="block text-xs font-semibold uppercase text-slate-400">Total requests</span>
+          <span id="stat-total" class="font-display font-extrabold text-2xl text-slate-900 leading-none">0</span>
+        </div>
+        <div class="p-2.5 bg-slate-100 text-slate-500 rounded-lg">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+        </div>
+      </div>
+
+      <!-- Pending Tickets Card -->
+      <div class="bg-amber-50/50 border border-amber-100 p-4 rounded-xl flex items-center justify-between shadow-xs">
+        <div class="space-y-1">
+          <span class="block text-xs font-semibold uppercase text-amber-500">Pending Approval</span>
+          <span id="stat-pending" class="font-display font-extrabold text-2xl text-amber-600 leading-none">0</span>
+        </div>
+        <div class="p-2.5 bg-amber-500/10 text-amber-500 rounded-lg">
+          <span class="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block animate-pulse"></span>
+        </div>
+      </div>
+
+      <!-- Accepted Tickets Card -->
+      <div class="bg-emerald-50/50 border border-emerald-100 p-4 rounded-xl flex items-center justify-between shadow-xs">
+        <div class="space-y-1">
+          <span class="block text-xs font-semibold uppercase text-emerald-500">Dispatched (Accepted)</span>
+          <span id="stat-accepted" class="font-display font-extrabold text-2xl text-emerald-600 leading-none">0</span>
+        </div>
+        <div class="p-2.5 bg-emerald-500/10 text-emerald-500 rounded-lg">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+        </div>
+      </div>
+
+      <!-- Declined Tickets Card -->
+      <div class="bg-rose-50/50 border border-rose-100 p-4 rounded-xl flex items-center justify-between shadow-xs">
+        <div class="space-y-1">
+          <span class="block text-xs font-semibold uppercase text-rose-500">Declined / Closed</span>
+          <span id="stat-declined" class="font-display font-extrabold text-2xl text-rose-600 leading-none">0</span>
+        </div>
+        <div class="p-2.5 bg-rose-500/10 text-rose-500 rounded-lg">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filter Control panel -->
+    <div class="bg-white border border-slate-200 rounded-2xl p-4 md:p-6 shadow-sm space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-100 pb-3">
+        <div>
+          <h2 class="font-display font-bold text-lg text-slate-900">Job Control & Dispatch Queue</h2>
+          <p class="text-xs text-slate-500">Filter, inspect, accept, or decline technical dispatch tickets.</p>
+        </div>
+        <!-- Storage source Indicator badge -->
+        <div class="self-start">
+          <span id="storage-indicator" class="px-2.5 py-1 text-[10px] font-mono font-bold tracking-wider rounded-md border text-slate-500 bg-slate-50 border-slate-200">
+            DEMO MODE (LOCAL REQS)
+          </span>
+        </div>
+      </div>
+
+      <!-- Grid Filters row -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+        <!-- Status Filter -->
+        <div class="space-y-1">
+          <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider">Status Category</label>
+          <select id="filter-status" class="w-full h-10 px-3 border border-slate-250 bg-slate-50/50 hover:bg-slate-50 rounded-xl text-xs outline-none">
+            <option value="All">All Jobs</option>
+            <option value="Pending" selected>Pending Jobs Only</option>
+            <option value="Accepted">Accepted Jobs Only</option>
+            <option value="Declined">Declined Jobs Only</option>
+          </select>
+        </div>
+
+        <!-- Priority Filter -->
+        <div class="space-y-1">
+          <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider">Priority Level</label>
+          <select id="filter-priority" class="w-full h-10 px-3 border border-slate-250 bg-slate-50/50 hover:bg-slate-50 rounded-xl text-xs outline-none">
+            <option value="All">All Priorities</option>
+            <option value="Normal">Normal</option>
+            <option value="Urgent">Urgent</option>
+            <option value="Emergency">Emergency</option>
+          </select>
+        </div>
+
+        <!-- Direct Search -->
+        <div class="space-y-1">
+          <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider">Search Keyword</label>
+          <input type="text" id="filter-search" placeholder="Search contact, ID, client name..." class="w-full h-10 px-3 border border-slate-250 bg-slate-50/50 focus:bg-white rounded-xl text-xs outline-none" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Loading Shimmer -->
+    <div id="dashboard-loader" class="hidden space-y-3">
+      <div class="w-full h-24 shimmer rounded-2xl"></div>
+      <div class="w-full h-24 shimmer rounded-2xl"></div>
+    </div>
+
+    <!-- Empty Slate (No jobs match filters) -->
+    <div id="empty-slate" class="hidden text-center py-16 bg-white border border-slate-250 rounded-2xl space-y-4">
+      <div class="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mx-auto text-slate-400">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0a2 2 0 01-2 2H6a2 2 0 01-2-2m16 0V9a2 2 0 00-2-2H6a2 2 0 00-2 2v4h16z"/></svg>
+      </div>
+      <div class="space-y-1">
+        <p class="font-semibold text-slate-700">No matching requests found</p>
+        <p class="text-xs text-slate-450 max-w-xs mx-auto">There are currently no tickets matching your active filter configuration. Clear filters or check for new requests!</p>
+      </div>
+    </div>
+
+    <!-- Dynamic Jobs Container -->
+    <div id="jobs-container" class="space-y-4">
+      <!-- Generated Cards go here -->
+    </div>
+
+  </main>
+
+  <!-- Interactive Action Confirmation Modal (For customized decline/accept message) -->
+  <div id="decision-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white border border-slate-200 shadow-2xl rounded-2xl p-6 max-w-md w-full space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <h3 id="modal-title" class="font-display font-bold text-lg text-slate-900 font-display">Dispatch Decision</h3>
+        <button id="close-modal-btn" class="p-1 hover:bg-slate-100 rounded text-slate-400 hover:text-slate-705">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <div class="space-y-4">
+        <div class="text-slate-600 text-xs">
+          An email update will be dispatched directly to <span id="modal-client-email" class="font-semibold text-slate-900">client@test.com</span> notifying them of your decision.
+        </div>
+        
+        <div class="space-y-1.5">
+          <label for="decision-message" class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Custom message to include in email</label>
+          <textarea id="decision-message" rows="3" placeholder="Provide scheduling info, next steps, or reasons for decline..." class="w-full p-3 border border-slate-200 rounded-xl text-xs outline-none focus:border-blue-500 resize-none"></textarea>
+        </div>
+      </div>
+
+      <div class="pt-3 border-t border-slate-100 flex justify-end space-x-2 text-xs">
+        <button id="cancel-decision-btn" class="px-4 py-2 bg-slate-100 hover:bg-slate-205 text-slate-700 rounded font-semibold transition">Cancel</button>
+        <button id="confirm-decision-btn" class="px-4 py-2 text-white rounded font-semibold transition shadow-sm"></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Big Image Modal (To view attached job photos closely) -->
+  <div id="image-overlay" class="fixed inset-0 bg-slate-950/90 backdrop-blur-sm z-55 flex items-center justify-center p-4 hidden" onclick="this.classList.add('hidden')">
+    <button class="absolute top-4 right-4 p-2 bg-white/20 text-white rounded-full hover:bg-white/30 transition">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    </button>
+    <img id="enlarged-image" src="" alt="Enlarged screenshot" class="max-w-full max-h-full rounded-lg shadow-2xl object-contain" />
+  </div>
+
+  <footer class="bg-slate-900 text-slate-500 py-6 text-center text-xs border-t border-slate-800">
+    <p>&copy; 2000-2026 Admin Control Console. Confidential Dispatch Center.</p>
+  </footer>
+
+  <!-- App logic loader -->
+  <script src="js/app.js"></script>
+</body>
+</html>
