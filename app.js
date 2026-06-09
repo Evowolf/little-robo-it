@@ -11,11 +11,11 @@ const LOCAL_JOBS_KEY = 'job_dispatch_platform_local_jobs';
 
 // Default configuration keys fallback, load from LocalStorage first if defined
 let CONFIG = {
-  emailjsServiceId: '',
-  emailjsTemplateIdToMe: '',
+  emailjsServiceId: 'service_k2wvtka',
+  emailjsTemplateIdToMe: 'template_6al3xzt',
   emailjsTemplateIdToClient: '',
   emailjsTemplateIdDecision: '',
-  emailjsPublicKey: '',
+  emailjsPublicKey: 'mwIutE0cE3KLbdh5nRR4x',
   oneSignalAppId: '',
   googleSheetsUrl: ''
 };
@@ -365,22 +365,23 @@ if (requestForm) {
       }
       
       // 2. Email Admin notification via EmailJS
-      if (CONFIG.emailjsServiceId && CONFIG.emailjsTemplateIdToMe) {
-        await emailjs.send(CONFIG.emailjsServiceId, CONFIG.emailjsTemplateIdToMe, {
-          id: jobId,
-          category: jobData.category,
-          priority: jobData.priority,
-          clientName: jobData.clientName,
-          businessName: jobData.businessName,
-          phoneNumber: jobData.phoneNumber,
-          email: jobData.email,
-          address: jobData.address,
-          preferredDateTime: jobData.preferredDateTime,
-          jobDescription: jobData.jobDescription,
-          dashboardUrl: window.location.href.replace('request.html', 'dashboard.html')
-        });
-        console.log("Email dispatch notification to Admin completed.");
-      }
+      const formData = {
+        name: jobData.clientName,
+        email: jobData.email,
+        phone: jobData.phoneNumber,
+        jobType: jobData.category,
+        description: jobData.jobDescription
+      };
+
+      emailjs.init("mwIutE0cE3KLbdh5nRR4x");
+
+      emailjs.send("service_k2wvtka", "template_6al3xzt", {
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          job_type: formData.jobType,
+          description: formData.description
+      });
       
       // 3. Email Auto-Reply confirmation to Client via EmailJS
       if (CONFIG.emailjsServiceId && CONFIG.emailjsTemplateIdToClient) {
